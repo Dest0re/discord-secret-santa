@@ -1,6 +1,6 @@
 import os
 
-
+# TODO: Make immutable
 class EnvironmentVariables:
     def __init__(self, *args: str):
         
