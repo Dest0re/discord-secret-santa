@@ -1,5 +1,9 @@
-from model import PCPerformance
+from discord.ext.commands.bot import Bot
+from utils import EnvironmentVariables
+from discordclient import bot
+
+bot_env = EnvironmentVariables('DISCORD_BOT_TOKEN')
 
 
 if __name__ == '__main__':
-    print(tuple(PCPerformance.select().execute()))
+    bot.run(bot_env.DISCORD_BOT_TOKEN)
