@@ -17,15 +17,15 @@ class BaseHandler:
         pass
 
     async def do_handle(self, ctx: discord.ApplicationContext):
-        await self._handle(ctx)
+        try:
+            await self._handle(ctx)
+        except StopHandleException:
+            await self._exc(ctx)
 
         if self._next:
             await self._next.do_handle(ctx)
 
     def set_next(self, next_handler):
-        try:
-            self._next = next_handler
-        except StopHandleException:
-            self._exc
+        self._next = next_handler
 
         return next_handler
