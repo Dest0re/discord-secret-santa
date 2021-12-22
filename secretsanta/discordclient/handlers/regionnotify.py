@@ -41,4 +41,3 @@ class RegionsNotify(BaseHandler):
         await accept_button.wait_for_accept()
 
         await ctx.edit(view=view)
-        await ctx.respond('Тест')
