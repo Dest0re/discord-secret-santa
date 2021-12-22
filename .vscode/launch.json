@@ -11,6 +11,14 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Launch",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/secretsanta/main.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }
