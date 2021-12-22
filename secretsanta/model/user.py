@@ -1,9 +1,9 @@
 from peewee import PrimaryKeyField, ForeignKeyField
 
-from basemodel import BaseModel
-from pcperformance import PCPerformance
-from steamprofile import SteamProfile
-from discordprofile import DiscordProfile
+from .basemodel import BaseModel
+from .pcperformance import PCPerformance
+from .steamprofile import SteamProfile
+from .discordprofile import DiscordProfile
 
 
 class User(BaseModel):
@@ -17,5 +17,5 @@ class User(BaseModel):
 
 
 if __name__ == '__main__':
-    print(User.select().execute())
+    print(tuple(User.select().execute()))
 

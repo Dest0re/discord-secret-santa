@@ -1,8 +1,8 @@
 from peewee import PrimaryKeyField, ForeignKeyField
 
-from basemodel import BaseModel
-from user import User
-from gamegenre import GameGenre
+from .basemodel import BaseModel
+from .user import User
+from .gamegenre import GameGenre
 
 
 class UserPreferredGenre(BaseModel):

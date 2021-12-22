@@ -1,8 +1,8 @@
 from peewee import PrimaryKeyField, ForeignKeyField
 
-from basemodel import BaseModel
-from user import User
-from gamepackage import GamePackage
+from .basemodel import BaseModel
+from .user import User
+from .gamepackage import GamePackage
 
 
 class Present(BaseModel):

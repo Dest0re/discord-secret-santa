@@ -1,6 +1,6 @@
 from peewee import PrimaryKeyField, TextField
 
-from basemodel import BaseModel
+from .basemodel import BaseModel
 
 
 class GameGenre(BaseModel):

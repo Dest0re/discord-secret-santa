@@ -1,7 +1,7 @@
 from peewee import PrimaryKeyField, TextField, ForeignKeyField
 
-from basemodel import BaseModel
-from performance import Performance
+from .basemodel import BaseModel
+from .performance import Performance
 
 
 class GameRequirements(BaseModel):

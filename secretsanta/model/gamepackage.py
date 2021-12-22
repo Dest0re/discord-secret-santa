@@ -1,7 +1,7 @@
 from peewee import PrimaryKeyField, ForeignKeyField, BigIntegerField, FloatField
 
-from basemodel import BaseModel
-from gamerequirements import GameRequirements
+from .basemodel import BaseModel
+from .gamerequirements import GameRequirements
 
 
 class GamePackage(BaseModel):

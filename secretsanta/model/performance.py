@@ -1,6 +1,6 @@
 from peewee import PrimaryKeyField
 
-from basemodel import BaseModel
+from .basemodel import BaseModel
 
 
 class Performance(BaseModel):

@@ -1,7 +1,7 @@
 from peewee import PrimaryKeyField, TextField, ForeignKeyField
 
-from basemodel import BaseModel
-from performance import Performance
+from .basemodel import BaseModel
+from .performance import Performance
 
 
 class PCPerformance(BaseModel):
@@ -14,4 +14,5 @@ class PCPerformance(BaseModel):
 
 
 if __name__ == '__main__':
-    print(PCPerformance.select().execute())
+    for row in PCPerformance.select():
+        print(row.id, row.name)

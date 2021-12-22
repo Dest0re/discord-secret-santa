@@ -1,8 +1,8 @@
 from peewee import PrimaryKeyField, ForeignKeyField
 
-from basemodel import BaseModel
-from gamepackage import GamePackage
-from gamegenre import GameGenre
+from .basemodel import BaseModel
+from .gamepackage import GamePackage
+from .gamegenre import GameGenre
 
 
 class GamePackageGenre(BaseModel):

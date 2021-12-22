@@ -1,6 +1,6 @@
 from peewee import PrimaryKeyField, BigIntegerField
 
-from basemodel import BaseModel
+from .basemodel import BaseModel
 
 
 class DiscordProfile(BaseModel):
