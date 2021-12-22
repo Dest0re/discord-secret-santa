@@ -1,6 +1,6 @@
 from peewee import MySQLDatabase
 
-from .utils import EnvironmentVariables
+from utils import EnvironmentVariables
 
 
 env = EnvironmentVariables(
