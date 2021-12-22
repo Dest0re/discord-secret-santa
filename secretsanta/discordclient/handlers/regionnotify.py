@@ -19,7 +19,7 @@ class AcceptButton(discord.ui.Button):
         async def callback(self, interaction: discord.Interaction):
             if self._is_active:
                 if interaction.user != self._member:
-                    await interaction.response.send_message('Это не твоё.', ephemeral=True)
+                    await interaction.response.send_message(embed=EmbedText('Это не твоё.'), ephemeral=True)
                 else:
                     self._is_active = False
                     self.disabled = True
