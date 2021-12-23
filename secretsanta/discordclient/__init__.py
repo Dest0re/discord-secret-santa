@@ -1,1 +1,1 @@
-from .botclient import bot
+from .collectbotclient import bot
