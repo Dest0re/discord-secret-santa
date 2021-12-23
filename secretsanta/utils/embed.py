@@ -17,4 +17,18 @@ class TitledText(discord.Embed):
 
 class DebugText(TitledText):
     def __init__(self, text: str):
-        super().__init__('Это дебаг, он тут ненадолго', text, color=0xFFB200)
+        super().__init__(
+            title='Это дебаг, он тут ненадолго', 
+            text=text, 
+            color=0xFFB200
+        )
+
+
+class SuccessText(EmbedText):
+    def __init__(self, text: str):
+        super().__init__(text=text, color=discord.Color.green)
+
+
+class WarningText(EmbedText):
+    def __init__(self, text: str):
+        super().__init__(text=text, color=0xFFCC00)
