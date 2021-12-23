@@ -13,3 +13,12 @@ class GamePackage(BaseModel):
 
     class Meta:
         table_name = 'GamePackage'
+
+
+    @classmethod
+    def from_steam_game_package(cls, package):
+        return cls(
+            steam_id=package.id, 
+            price=package.price, 
+            name=package.name
+        )
