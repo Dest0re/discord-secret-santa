@@ -1,4 +1,3 @@
-from discord.ext.commands.bot import Bot
 from utils import EnvironmentVariables
 from discordclient import bot
 
