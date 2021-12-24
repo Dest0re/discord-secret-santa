@@ -8,7 +8,7 @@ import base64
 import time
 from exceptions import *
 
-sys.path.append('../')
+#sys.path.append('../')
 from model import gamegenre, gamepackage, gamepackagegenre
 
 
