@@ -1,3 +1,4 @@
 py-cord
 peewee
 mysqlclient
+rsa
