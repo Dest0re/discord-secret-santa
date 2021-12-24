@@ -3,12 +3,12 @@ import asyncio
 import contextvars
 import sys
 import functools
-import rsa
 import base64
 import time
-from exceptions import *
 
-#sys.path.append('../')
+import rsa
+
+from .exceptions import *
 from model import gamegenre, gamepackage, gamepackagegenre
 
 
@@ -110,7 +110,6 @@ class SteamStore:
             pack.id = package['packageid']
             pack.price = package['price_in_cents_with_discount'] // 100
             pack.name = "".join(i + ' - ' for i in package["option_text"].split(" - ")[:-1])[:-3]
-            pack = gamepackage.GamePackage().from_steam_game_package(pack)
             game.packages.append(pack)
         return game
 
