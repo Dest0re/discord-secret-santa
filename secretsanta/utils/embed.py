@@ -26,7 +26,7 @@ class DebugText(TitledText):
 
 class SuccessText(EmbedText):
     def __init__(self, text: str):
-        super().__init__(text=text, color=discord.Color.green)
+        super().__init__(text=text, color=discord.Color.green())
 
 
 class WarningText(EmbedText):
