@@ -1,14 +1,18 @@
-class LoginRequired(Exception):
+class SteamStoreException(Exception):
     pass
 
 
-class ApiError(Exception):
+class LoginRequired(SteamStoreException):
     pass
 
 
-class PackageDoesNotExist(Exception):
+class ApiError(SteamStoreException):
     pass
 
 
-class AppDoesNotExist(Exception):
+class PackageDoesNotExist(SteamStoreException):
+    pass
+
+
+class AppDoesNotExist(SteamStoreException):
     pass
