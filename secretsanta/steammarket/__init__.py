@@ -1,1 +1,1 @@
-from .steammarket import SteamStore
+from .steammarket import SteamStore, Game
