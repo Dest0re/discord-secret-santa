@@ -6,7 +6,9 @@
     "timeout_error": "Время вышло, извините, но вам придётся добавлять игру заново!",
     "url_get_error": "Вы слишком много раз ввели неправильный url. Простите, но вам придётся добавлять игру заново.",
     "app_does_not_exist": "Такой игры нет. Пожалуйста, попробуйте ввести другую ссылку.",
-    "game_choose_placeholder": "Выберите игру из списка.",
+    "game_choose_placeholder": "Выберите игру из списка...",
     "multiple_packages": "Кажется, игра имеет несколько вариантов покупки. Пожалуйста, выберите один.",
-    "selected_game": "Выбрана игра: **{game_package_name}**"
+    "selected_game": "Выбрана игра: **{game_package_name}**",
+    "pc_performance_choose_placeholder": "Выберите производительность компьютера...",
+    "game_requirements_choose_placeholder": "Выберите требовательность игры..."
 }
