@@ -9,8 +9,9 @@ from utils.embed import EmbedText, ErrorText, DebugText, TitledText, WarningText
 from steammarket import SteamStore, Game
 from steammarket.exceptions import AppDoesNotExist
 from .view.dropdown import GamePackageChooseDropdown, PackageSelectOption
+from model import GamePackage, Present, User, DiscordProfile, model
 
-game_url_regex = r'[a-z]+://store.steampowered.com/app/(?P<game_id>\d+)/[a-zA-Z]+/?'
+game_url_regex = r'[a-z]+://store.steampowered.com/app/(?P<game_id>\d+).+'
 
 steam_store = SteamStore()
 
@@ -76,7 +77,13 @@ class SelectGameHandler(BaseHandler):
                     else:
                         game_package = game.packages[0]
                     
-                    await ctx.respond(embed=DebugText(f"Выбрана игра: {game_package.name}"))
+                    model_package, created = model(game_package)
+
+                    model_user = User.select().join(DiscordProfile).where(DiscordProfile.discord_id == ctx.author.id).limit(1).execute()[0]
+                    
+                    present = Present.create(user=model_user, game_package=model_package, paid=False)
+
+                    await ctx.respond(embed=DebugText(f"Выбрана игра: {game_package.name} \nid подарка в базе: {present.id}"))
 
                 except InvalidGameUrl:
                     await ctx.respond(embed=WarningText(ts.invalid_game_url))
