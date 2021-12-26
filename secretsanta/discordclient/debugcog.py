@@ -3,7 +3,7 @@ from discord.commands import SlashCommandGroup
 from discord.ext import commands
 
 from .basecog import BaseCog
-from .handlers import SaveBasicUserInformation, TestHandler, SelectGameHandler, SelectGameRequirementsHandler
+from .handlers import SaveBasicUserInformation, TestHandler, SelectGameHandler, SelectGameRequirementsHandler, SelectGameGenresHandler
 
 
 class DebugCog(BaseCog):
@@ -28,5 +28,11 @@ class DebugCog(BaseCog):
     @debug_group.command(name='select_game_requirements', guild_ids=[920707642308055100])
     async def _register_new_game(self, ctx: discord.ApplicationContext):
         handler = SelectGameRequirementsHandler()
+        handler.set_next(TestHandler())
+        await handler.do_handle(ctx)
+
+    @debug_group.command(name='select_game_genres', guild_ids=[920707642308055100])
+    async def _select_game_genres(self, ctx: discord.ApplicationContext):
+        handler = SelectGameGenresHandler()
         handler.set_next(TestHandler())
         await handler.do_handle(ctx)
