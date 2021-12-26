@@ -6,6 +6,7 @@ from discord.components import SelectOption
 
 from utils.strings import text_strings as ts
 from utils.embed import WarningText
+from model import GameRequirements
 
 
 class PackageSelectOption(SelectOption):
@@ -14,6 +15,33 @@ class PackageSelectOption(SelectOption):
         super().__init__(
             label=game_package.name,
             description=f'{game_package.price}₽'
+        )
+
+
+class PCPerformanceSelectOption(SelectOption):
+    def __init__(self, pc_performance, emoji):
+        self.pc_performance = pc_performance
+        super().__init__(
+            label=pc_performance.name,
+            description=pc_performance.description,
+            emoji=emoji
+        )
+
+
+class GameRequirementsSelectOption(SelectOption):
+    def __init__(self, game_requirements, emoji):
+        self.game_requirements = game_requirements
+        super().__init__(
+            label=game_requirements.name,
+            description=game_requirements.description,
+            emoji=emoji
+        )
+
+class GameGenreSelectOption(SelectOption):
+    def __init__(self, game_genre):
+        self.game_genre = game_genre
+        super().__init__(
+            label=game_genre.name
         )
 
 
@@ -99,4 +127,34 @@ class GamePackageChooseDropdown(PersonalOneChoiceDropdown):
             user=user,
             placeholder=ts.game_choose_placeholder,
             options=options
+        )
+
+
+# Можно было отнаследоваться от одного класса Performance, как изначально и планировалось в схеме, но надо торопиться
+class PCPerformanceChooseDropdown(PersonalOneChoiceDropdown):
+    def __init__(self, user, options: PCPerformanceSelectOption):
+        super().__init__(
+            user=user,
+            placeholder=ts.pc_performance_choose_placeholder,
+            options=options
+        )
+
+
+class GameRequirementsChooseDropdown(PersonalOneChoiceDropdown):
+    def __init__(self, user, options: GameRequirementsSelectOption):
+        super().__init__(
+            user=user,
+            placeholder=ts.game_requirements_choose_placeholder,
+            options=options
+        )
+
+
+class PersonalGenreDropdown(PersonalDropdown):
+    def __init__(self, user, options: GameGenreSelectOption):
+        super().__init__(
+            user=user,
+            placeholder=ts.game_genres_choose_placeholder,
+            options=options,
+            min_values=1,
+            max_values=3
         )
