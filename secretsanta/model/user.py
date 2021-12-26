@@ -10,7 +10,7 @@ class User(BaseModel):
     id = PrimaryKeyField(column_name='user_id')
     discord_profile = ForeignKeyField(DiscordProfile, column_name='discord_profile_id')
     steam_profile = ForeignKeyField(SteamProfile, column_name='steam_profile_id')
-    pc_performance = ForeignKeyField(PCPerformance, column_name='pc_performance_id')
+    pc_performance = ForeignKeyField(PCPerformance, column_name='pc_performance_id', null=True)
 
     class Meta:
         table_name = 'User'

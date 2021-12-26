@@ -6,7 +6,7 @@ from .gamerequirements import GameRequirements
 
 class GamePackage(BaseModel):
     id = PrimaryKeyField(column_name='game_package_id')
-    requirements = ForeignKeyField(GameRequirements, column_name='game_requirements_id')
+    requirements = ForeignKeyField(GameRequirements, column_name='game_requirements_id', null=True)
     steam_id = BigIntegerField(column_name='game_package_steam_id')
     price = FloatField(column_name='price')
     name = TextField(column_name='game_package_name')
