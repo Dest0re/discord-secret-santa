@@ -11,4 +11,4 @@ class UserPreferredGenre(BaseModel):
     genre = ForeignKeyField(GameGenre, column_name='game_genre_id')
 
     class Meta:
-        table_name = 'SteamProfile'
+        table_name = 'UserPreferredGenre'
