@@ -9,14 +9,17 @@ import time
 import rsa
 
 from .exceptions import *
-from model import gamegenre, gamepackage, gamepackagegenre
+from model import gamegenre, GamePackage, gamepackagegenre, ModelPrototype
 
 
-class Package:
+class Package(ModelPrototype):
     def __init__(self):
         self.id = 0
         self.name = ''
         self.price = 0
+    
+    def __model__(self):
+        return GamePackage.get_or_create(steam_id=self.id, name=self.name, price=self.price)
 
 
 class Game:
