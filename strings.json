@@ -10,5 +10,13 @@
     "multiple_packages": "Кажется, игра имеет несколько вариантов покупки. Пожалуйста, выберите один.",
     "selected_game": "Выбрана игра: **{game_package_name}**",
     "pc_performance_choose_placeholder": "Выберите производительность компьютера...",
-    "game_requirements_choose_placeholder": "Выберите требовательность игры..."
+    "game_requirements_choose_placeholder": "Выберите требовательность игры...",
+    "select_game_requirements": "Пожалуйста, выберите требовательность игры:",
+    "select_game_requirements_success": "Выбрана требовательность: **{game_requirements_name}**.",
+    "payment_success": "Спасибо, оплата прошла успешно!",
+    "game_genres_choose_placeholder": "Выберите жанры...",
+    "game_genres_select": "Пожалуйста, укажите, какие у этой игры жанры. Просьба отнестить к этому с ответственностью, ведь на основании этого будут распределяться игры! \nПозже вы сможете выбрать свои любимые жанры.",
+    "preferred_genres_select": "Пожалуйста, укажите свои любимые жанры. Указывайте с умом, это будет учтено при раздаче!",
+    "pc_performance_select": "Укажите производительность вашего компьютера. \nВыбирайте с умом, это будет учитываться при распределении игр!",
+    "pc_performance_select_success": "Выбрана производительность: **{pc_performance_name}**"
 }
