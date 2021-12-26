@@ -6,7 +6,7 @@ from discord.components import SelectOption
 
 from utils.strings import text_strings as ts
 from utils.embed import WarningText
-from model import GameRequirements
+from model import GameGenre
 
 
 class PackageSelectOption(SelectOption):
@@ -149,8 +149,9 @@ class GameRequirementsChooseDropdown(PersonalOneChoiceDropdown):
         )
 
 
-class PersonalGenreDropdown(PersonalDropdown):
-    def __init__(self, user, options: GameGenreSelectOption):
+class PersonalGameGenreChooseDropdown(PersonalDropdown):
+    def __init__(self, user):
+        options = [GameGenreSelectOption(gg) for gg in GameGenre.select()]
         super().__init__(
             user=user,
             placeholder=ts.game_genres_choose_placeholder,
