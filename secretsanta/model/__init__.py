@@ -10,3 +10,4 @@ from .present import Present
 from .steamprofile import SteamProfile
 from .user import User
 from .userpreferredgenre import UserPreferredGenre
+from .modelprototype import ModelPrototype, model
