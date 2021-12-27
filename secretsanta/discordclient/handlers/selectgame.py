@@ -83,8 +83,6 @@ class SelectGameHandler(BaseHandler):
                     
                     present = Present.create(user=model_user, game_package=model_package, paid=False)
 
-                    await ctx.respond(embed=DebugText(f"Выбрана игра: {game_package.name} \nid подарка в базе: {present.id}"))
-
                 except InvalidGameUrl:
                     await ctx.respond(embed=WarningText(ts.invalid_game_url))
                     continue

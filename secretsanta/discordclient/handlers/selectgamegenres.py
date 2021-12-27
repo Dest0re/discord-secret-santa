@@ -39,7 +39,6 @@ class SelectGameGenresHandler(BaseHandler):
             raise StopHandleException("Select game genres")
 
         if self._check_if_already_selected(game_package):
-            await ctx.respond(embed=DebugText('Для этой игры жанры уже выбраны...'))
             return
         
         dropdown = PersonalGameGenreChooseDropdown(ctx.author)

@@ -32,7 +32,6 @@ class SelectGameRequirementsHandler(BaseHandler):
             raise StopHandleException('Game requirements select')
 
         if package.requirements:
-            await ctx.respond(embed=DebugText("Для этой игры требовательность уже указана."))
             return
 
         requirement_list = [GameRequirementsSelectOption(gr, ctx.bot.get_emoji(gr.emoji_id)) for gr in GameRequirements.select()][::-1]

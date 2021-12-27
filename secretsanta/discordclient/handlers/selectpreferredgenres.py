@@ -36,7 +36,6 @@ class SelectPreferredGenresHandler(BaseHandler):
             raise StopHandleException("Select preferred genres")
 
         if self._check_if_already_selected(user):
-            await ctx.respond(embed=DebugText('Пользователь уже выбирал любимые жанры.'))
             return
         
         dropdown = PersonalGameGenreChooseDropdown(ctx.author)

@@ -24,7 +24,6 @@ class SelectPCPerformanceHandler(BaseHandler):
             raise StopHandleException("Select PC performance")
 
         if user.pc_performance:
-            await ctx.respond(embed=DebugText("Пользователь уже выбирал производительность"))
             return
 
         requirement_list = [PCPerformanceSelectOption(gr, ctx.bot.get_emoji(gr.emoji_id)) for gr in PCPerformance.select()][::-1]
