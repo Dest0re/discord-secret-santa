@@ -7,12 +7,10 @@ from .handlers import RegionsNotify, SaveBasicUserInformation, \
     SelectGameRequirementsHandler, SelectPreferredGenresHandler, \
     SelectPCPerformanceHandler, SuccessHandler
 
-from typing import Optional
 
-
-class PresentCog(BaseCog):
-    @slash_command(name='present', guild_ids=[920707642308055100])
-    async def _present_command(self, ctx: discord.ApplicationContext, game_url: Optional[str] = None):
+class GiftCog(BaseCog):
+    @slash_command(name='gift', guild_ids=[920707642308055100])
+    async def _present_command(self, ctx: discord.ApplicationContext):
         handler = RegionsNotify()
         (
             handler 
