@@ -8,3 +8,4 @@ from .selectpreferredgenres import SelectPreferredGenresHandler
 from .selectpcperformance import SelectPCPerformanceHandler
 from .success import SuccessHandler
 from .test import TestHandler
+from .askforsteamurl import AskForSteamUrlHandler
