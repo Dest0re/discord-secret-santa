@@ -16,3 +16,11 @@ class PackageDoesNotExist(SteamStoreException):
 
 class AppDoesNotExist(SteamStoreException):
     pass
+
+
+class TooManyRequests(SteamStoreException):
+    pass
+
+
+class PaymentError(SteamStoreException):
+    pass

@@ -17,7 +17,7 @@ class Package(ModelPrototype):
         self.id = 0
         self.name = ''
         self.price = 0
-    
+
     def __model__(self):
         return GamePackage.get_or_create(steam_id=self.id, name=self.name, price=self.price)
 
@@ -86,16 +86,20 @@ class SteamStore:
         }
         response = await self.session.post(f"{self.StoreURL}/login/dologin/", data=data)
         json = await response.json()
+        message = "There have been too many login failures from your network in a short time period.  " \
+                  "Please wait and try again later."
+        if json['message'] == message:
+            raise TooManyRequests(message)
         while not json['success']:
             twofactor = await to_thread(input, "Нужен код SteamGuard >>> ") if json['requires_twofactor'] else ""
-            emailauth = await to_thread(input, f"Нужен код из почты {json['emaildomain']} >>> ") if json['emailauth_needed'] else ""
+            emailauth = await to_thread(input, f"Нужен код из почты {json['emaildomain']} >>> ") \
+                if json['emailauth_needed'] else ""
             data['twofactorcode'] = twofactor
             data['emailauth'] = emailauth
             response = await self.session.post(f"{self.StoreURL}/login/dologin/", data=data)
             json = await response.json()
         parameters = json['transfer_parameters']
         for url in json['transfer_urls']:
-            print(parameters)
             await self.session.post(url=url, data=parameters)
         self.logged_in = True
 
@@ -111,7 +115,7 @@ class SteamStore:
         for package in json['data']['package_groups'][0]['subs']:
             pack = Package()
             pack.id = package['packageid']
-            pack.price = package['price_in_cents_with_discount'] // 100
+            pack.price = package['price_in_cents_with_discount'] / 100
             pack.name = "".join(i + ' - ' for i in package["option_text"].split(" - ")[:-1])[:-3]
             game.packages.append(pack)
         return game
@@ -121,11 +125,11 @@ class SteamStore:
         response = await self.session.get(url)
         json = (await response.json())[str(package_id)]
         if not json['success']:
-            raise PackageDoesNotExist("App does not exist")
+            raise PackageDoesNotExist("Package does not exist")
         package = Package()
         package.name = json['data']['name']
         package.id = package_id
-        package.price = int(json['data']['price']['final']) // 100
+        package.price = int(json['data']['price']['final']) / 100
         return package
 
     @login_required
@@ -136,17 +140,121 @@ class SteamStore:
         if not json['success']:
             raise ApiError(f"Failed. Response: {json}")
 
-    async def close(self):
+    @login_required
+    async def buy_gift(self, friend_id: int) -> None:
+        gidShoppingCart = self.session.cookie_jar.filter_cookies(self.StoreURL)['shoppingCartGID'].value
+        sessionid = self.session.cookie_jar.filter_cookies(self.StoreURL)['sessionid'].value
+        data = {
+            "gidShoppingCart": gidShoppingCart,
+            "gidReplayOfTransID": "-1",
+            "PaymentMethod": "", # visa/mastercard
+            "abortPendingTransactions": "0",
+            "bHasCardInfo": "1",
+            "CardNumber": "", # сюда номер карты
+            "CardExpirationYear": "", # сюда год истечения карты
+            "CardExpirationMonth": "", # сюда месяц истечения карты
+            "FirstName": "Ivan",
+            "LastName": "Ivanov",
+            "Address": "Lenina 1",
+            "AddressTwo": "",
+            "Country": "RU",
+            "City": "Moscow",
+            "State": "",
+            "PostalCode": "101000",
+            "Phone": "79012345678",
+            "ShippingFirstName": "Ivan",
+            "ShippingLastName": "Ivanov",
+            "ShippingAddress": "Lenina 1",
+            "ShippingAddressTwo": "",
+            "ShippingCountry": "RU",
+            "ShippingCity": "Moscow",
+            "ShippingState": "",
+            "ShippingPostalCode": "101000",
+            "ShippingPhone": "79012345678",
+            "bIsGift": "1",
+            "GifteeAccountID": str(friend_id),
+            "GifteeEmail": "",
+            "GifteeName": "", # Поменять
+            "GiftMessage": "Бип буп бип", # Поменять
+            "Sentiment": "С наилучшими пожеланиями", # Поменять
+            "Signature": "Secret Santa", # Поменять
+            "ScheduledSendOnDate": "0",
+            "BankAccount": "",
+            "BankCode": "",
+            "BankIBAN": "",
+            "BankBIC": "",
+            "TPBankID": "",
+            "BankAccountID": "",
+            "bSaveBillingAddress": "0",
+            "gidPaymentID": "",
+            "bUseRemainingSteamAccount": "0",
+            "bPreAuthOnly": "0",
+            "sessionid": sessionid
+        }
+        url = f"{self.StoreURL}/checkout/inittransaction/"
+        response = await self.session.post(url, data=data)
+        json = await response.json()
+        if str(json['success']) != "1":
+            raise PaymentError("PaymentError")
+        transid = json['transid']
+        url = f"{self.StoreURL}/checkout/getfinalprice/?count=1&transid={transid}&purchasetype=gift&microtxnid=-1&cart={gidShoppingCart}&gidReplayOfTransID=-1"
+        await self.session.get(url)
+        url = f"{self.StoreURL}/checkout/finalizetransaction/"
+        data = {
+            "transid": str(transid),
+            "CardCVV2": "000",
+            "browserInfo": '{"language": "en-US", "javaEnabled": "false", "colorDepth": 24, "screenHeight": 1080, "screenWidth": 1920}'
+        }
+        await self.session.post(url, data=data)
+        for i in range(1, 4):
+            url = f"{self.StoreURL}/checkout/transactionstatus/?count={i}&transid={transid}"
+            response = await self.session.get(url)
+            json = await response.json()
+            if str(json['success']) == "1":
+                break
+            await asyncio.sleep(1)
+        url = "https://store.steampowered.com/checkout/logsuccessfulpurchase"
+        await self.session.post(url)
+
+    @login_required
+    async def add_to_friends(self, friend_id: int, friend_name: str) -> None:
+        url = "https://steamcommunity.com/actions/AddFriendAjax"
+        sessionid = self.session.cookie_jar.filter_cookies(self.StoreURL)['sessionid'].value
+        headers = {
+            "Host": "steamcommunity.com",
+            "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0",
+            "Accept": "*/*",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "X-Requested-With": "XMLHttpRequest",
+            "Content-Length": "76",
+            "Origin": "https://steamcommunity.com",
+            "Connection": "keep-alive",
+            "Referer": f"https://steamcommunity.com/id/{friend_name}",
+            "Cookie": "".join(f"{cookie.key}={cookie.value}; " for key, cookie in self.session.cookie_jar.filter_cookies("https://steamcommunity.com").items())[:-2],
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-GPC": "1"
+        }
+        data = {
+            "sessionID": sessionid, "steamid": str(friend_id), "accept_invite": "0"
+        }
+        response = await self.session.post(url, headers=headers, json=data)
+
+    async def close(self) -> None:
         await self.session.close()
+
+    async def __aexit__(self, exc_type, exc_value, exc_traceback):
+        await self.session.close()
+
+    async def __aenter__(self):
+        return self
 
 
 async def main():
-    steam = SteamStore()
-    response = await steam.fetch_app(924970)
-    print(response.name)
-    response = await steam.fetch_package(54029)
-    print(response.name)
-    await steam.close()
+    pass
 
 
 if __name__ == "__main__":
