@@ -55,6 +55,12 @@ class SteamStore:
         self.session = aiohttp.ClientSession(trust_env=True)
         self.logged_in = False
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
     async def login(self, username, password) -> None:
         await self.session.get(url=f"{self.StoreURL}/?l=russian")
         params = {
@@ -218,6 +224,7 @@ class SteamStore:
 
     @login_required
     async def add_to_friends(self, friend_id: int, friend_name: str) -> None:
+        # not working
         url = "https://steamcommunity.com/actions/AddFriendAjax"
         sessionid = self.session.cookie_jar.filter_cookies(self.StoreURL)['sessionid'].value
         headers = {
@@ -245,12 +252,6 @@ class SteamStore:
 
     async def close(self) -> None:
         await self.session.close()
-
-    async def __aexit__(self, exc_type, exc_value, exc_traceback):
-        await self.session.close()
-
-    async def __aenter__(self):
-        return self
 
 
 async def main():

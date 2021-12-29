@@ -10,6 +10,7 @@ from utils import EnvironmentVariables
 
 secret = EnvironmentVariables("QIWI_SECRET_KEY")
 
+
 class Bill:
     def __init__(self, billid: str, value: float, name: str, json: dict):
         self.billid = billid
@@ -20,6 +21,12 @@ class Bill:
         self.payed = True if json["status"]["value"] == "PAID" else False
         self.waiting = True if json["status"]["value"] == "WAITING" else False
         self.session = aiohttp.ClientSession()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
 
     async def wait_for_payment(self, timeout: float):
 
@@ -58,10 +65,19 @@ class Bill:
         self.payed = True if json["status"]["value"] == "PAID" else False
         self.waiting = True if json["status"]["value"] == "WAITING" else False
 
+    async def close(self):
+        await self.session.close()
+
 
 class Qiwi:
     def __init__(self):
         self.session = aiohttp.ClientSession()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
 
     async def create_bill(self, value: float, game_name: str) -> Bill:
         billid = "".join(choice(string.ascii_lowercase + string.digits + "-_") for i in range(36))
@@ -115,6 +131,9 @@ class Qiwi:
         bill.rejected = True if json["status"]["value"] == "REJECTED" else False
         bill.payed = True if json["status"]["value"] == "PAID" else False
         bill.waiting = True if json["status"]["value"] == "WAITING" else False
+
+    async def close(self):
+        await self.session.close()
 
 
 async def main():
