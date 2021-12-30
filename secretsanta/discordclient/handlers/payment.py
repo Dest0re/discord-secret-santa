@@ -31,7 +31,7 @@ class PaymentHandler(BaseHandler):
         
         
         bill = await payment.create_bill(
-            value=present.game_package.price, 
+            value=present.game_package.price,
             game_name=ts.payment_form_comment.format(game_name=present.game_package.name)
         )
 
@@ -46,7 +46,8 @@ class PaymentHandler(BaseHandler):
         )
 
         try:
-            await bill.wait_for_payment(120)
+            #await bill.wait_for_payment(180)
+            pass
         except asyncio.TimeoutError:
             await bill.cancel()
             await ctx.respond(embed=ErrorText(ts.timeout_error))
