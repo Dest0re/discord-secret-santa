@@ -3,9 +3,9 @@ import asyncio
 import discord
 from discord.enums import ButtonStyle
 
-from .basehandler import BaseHandler
+from .basehandler import BaseHandler, StopHandleException
 from .view.button import PersonalAcceptButton
-from utils.embed import EmbedText
+from utils.embed import EmbedText, ErrorText
 from utils.strings import text_strings as ts
 
 
@@ -18,6 +18,10 @@ class RegionsNotify(BaseHandler):
             view=view
         )
 
-        await accept_button.wait_for_accept()
+        try:
+            await accept_button.wait_for_accept()
+        except asyncio.TimeoutError:
+            await ctx.respond(embed=ErrorText(ts.timeout_error))
+            raise StopHandleException("Region notify")
 
         await ctx.edit(view=view)
