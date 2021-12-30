@@ -11,6 +11,8 @@ from steammarket.exceptions import AppDoesNotExist
 from .view.dropdown import GamePackageChooseDropdown, PackageSelectOption
 from model import GamePackage, Present, User, DiscordProfile, model
 
+MINIMAL_PRICE = 10.0
+
 game_url_regex = r'[a-z]+://store.steampowered.com/app/(?P<game_id>\d+).+'
 
 steam_store = SteamStore()
@@ -76,6 +78,10 @@ class SelectGameHandler(BaseHandler):
                         game_package = await self._get_one_package(ctx, game)
                     else:
                         game_package = game.packages[0]
+
+                    if game_package.price <= MINIMAL_PRICE:
+                        await ctx.respond(embed=WarningText(ts.too_low_price))
+                        continue
                     
                     model_package, created = model(game_package)
 
