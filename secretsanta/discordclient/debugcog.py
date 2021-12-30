@@ -3,7 +3,7 @@ from discord.commands import SlashCommandGroup
 from discord.ext import commands
 
 from .basecog import BaseCog
-from .handlers import SaveBasicUserInformation, TestHandler, SelectGameHandler, SelectGameRequirementsHandler, SelectGameGenresHandler, SelectPCPerformanceHandler, AskForSteamUrlHandler
+from .handlers import SaveBasicUserInformation, TestHandler, SelectGameHandler, SelectGameRequirementsHandler, SelectGameGenresHandler, SelectPCPerformanceHandler, AskForSteamUrlHandler, MinimalPriceNotify, PaymentHandler
 
 
 class DebugCog(BaseCog):
@@ -46,5 +46,16 @@ class DebugCog(BaseCog):
     @debug_group.command(name='add_steam_profile', guild_ids=[920707642308055100])
     async def _add_steam_profile(self, ctx: discord.ApplicationContext):
         handler = AskForSteamUrlHandler()
+        handler.set_next(TestHandler())
+        await handler.do_handle(ctx)
+
+    @debug_group.command(name='notify_about_minimal_price', guild_ids=[920707642308055100])
+    async def _notify_about_minimal_price(self, ctx: discord.ApplicationContext):
+        handler = MinimalPriceNotify()
+        await handler.do_handle(ctx)
+    
+    @debug_group.command(name='buy_game', guild_ids=[920707642308055100])
+    async def _buy_game(self, ctx: discord.ApplicationContext):
+        handler = PaymentHandler()
         handler.set_next(TestHandler())
         await handler.do_handle(ctx)
