@@ -1,5 +1,7 @@
 import discord
 
+from model import User, DiscordProfile
+
 
 class StopHandleException(Exception):
     def __init__(self, stage: str):
@@ -14,7 +16,17 @@ class BaseHandler:
         pass
 
     async def _exc(self, ctx: discord.ApplicationContext):
-        pass
+        user = (
+            User
+            .select()
+            .join(DiscordProfile)
+            .where(DiscordProfile.discord_id == ctx.author.id)
+            .get()
+        )
+
+        if user:
+            user.in_process = False
+            user.save()
 
     async def do_handle(self, ctx: discord.ApplicationContext):
         try:
