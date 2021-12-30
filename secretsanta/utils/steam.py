@@ -9,7 +9,7 @@ from .environmentvariables import EnvironmentVariables
 env = EnvironmentVariables('STEAM_TOKEN')
 
 
-STEAM_PROFILE_LINK_REGEX = r'https://steamcommunity.com/id/(?P<vanity_id>.+)/?.+'
+STEAM_PROFILE_LINK_REGEX = r'https://steamcommunity.com/id/(?P<vanity_id>.+)/?.*'
 ID_GET_URL = 'http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/'
 
 
