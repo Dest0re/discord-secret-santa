@@ -270,7 +270,6 @@ class SteamStore:
 
 async def main():
     async with SteamStore() as steam:
-        await steam.login(username="ivan20030312003", password="C76FAwHCrqqpKJUzEbgFGzFTFvdDLEXw")
         await steam.add_to_friends(76561199225756232, "h0ly_jesus")
 
 
