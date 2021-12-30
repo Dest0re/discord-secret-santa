@@ -26,8 +26,11 @@ class PersonalAcceptButton(discord.ui.Button):
                     self._is_active = False
                     self.disabled = True
         
-        async def wait_for_accept(self):
+        async def wait_for_accept(self, timeout=120):
+            execute_time = time()
             while self._is_active:
+                if time() - execute_time >= timeout:
+                    raise asyncio.TimeoutError
                 await asyncio.sleep(0.1)
 
 
