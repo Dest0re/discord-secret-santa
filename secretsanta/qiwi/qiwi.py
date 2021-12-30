@@ -6,14 +6,15 @@ import string
 import aiohttp
 
 from .exceptions import *
-from utils import EnvironmentVariables
 
-secret = EnvironmentVariables("QIWI_SECRET_KEY")
+REJECT_BILL_URL = 'https://api.qiwi.com/partner/bill/v1/bills/{bill_id}/reject'
+CHECK_BILL_URL = 'https://api.qiwi.com/partner/bill/v1/bills/{bill_id}'
 
 
 class Bill:
-    def __init__(self, billid: str, value: float, name: str, json: dict):
-        self.billid = billid
+    def __init__(self, secret: str, billid: str, value: float, name: str, json: dict):
+        self._secret = secret
+        self.id = billid
         self.value = value
         self.name = name
         self.payurl = json['payUrl']
@@ -29,18 +30,17 @@ class Bill:
         await self.close()
 
     async def wait_for_payment(self, timeout: float):
-
         async def wait(self):
             while not self.payed and not self.rejected:
-                await self.check_bill()
+                await self._check()
                 await asyncio.sleep(5)
 
         await asyncio.wait_for(wait(self), timeout)
 
-    async def cancel_bill(self):
-        url = f"https://api.qiwi.com/partner/bill/v1/bills/{self.billid}/reject"
+    async def cancel(self):
+        url = REJECT_BILL_URL.format(bill_id=self.id)
         headers = {
-            "Authorization": f"Bearer {secret}",
+            "Authorization": f"Bearer {self._secret}",
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
@@ -51,10 +51,10 @@ class Bill:
         self.rejected = True
         self.waiting = False
 
-    async def check_bill(self):
-        url = f"https://api.qiwi.com/partner/bill/v1/bills/{self.billid}"
+    async def _check(self):
+        url = CHECK_BILL_URL.format(bill_id=self.id)
         headers = {
-            "Authorization": f"Bearer {secret}",
+            "Authorization": f"Bearer {self._secret}",
             "Accept": "application/json"
         }
         response = await self.session.get(url, headers=headers)
@@ -70,7 +70,9 @@ class Bill:
 
 
 class Qiwi:
-    def __init__(self):
+    def __init__(self, secret: str):
+        self._secret = secret
+
         self.session = aiohttp.ClientSession()
 
     async def __aenter__(self):
@@ -80,10 +82,10 @@ class Qiwi:
         await self.close()
 
     async def create_bill(self, value: float, game_name: str) -> Bill:
-        billid = "".join(choice(string.ascii_lowercase + string.digits + "-_") for i in range(36))
+        bill_id = "".join(choice(string.ascii_lowercase + string.digits + "-_") for i in range(36))
         expirationdatetime = (datetime.datetime.now() + datetime.timedelta(minutes=15))
         expirationdatetime = expirationdatetime.replace(microsecond=0).isoformat() + "+03:00"
-        url = f"https://api.qiwi.com/partner/bill/v1/bills/{billid}"
+        url = CHECK_BILL_URL.format(bill_id=bill_id)
         data = {
             'amount': {
                 'currency': 'RUB',
@@ -93,7 +95,7 @@ class Qiwi:
             'expirationDateTime': expirationdatetime
         }
         headers = {
-            "Authorization": f"Bearer {secret}",
+            "Authorization": f"Bearer {self._secret}",
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
@@ -102,35 +104,13 @@ class Qiwi:
         json = await response.json()
         if "errorCode" in json:
             raise ApiError(f"Api returned error: {json['errorCode']}")
-        return Bill(billid, value, game_name, json)
+        return Bill(bill_id, value, game_name, json)
 
     async def cancel_bill(self, bill: Bill):
-        url = f"https://api.qiwi.com/partner/bill/v1/bills/{bill.billid}/reject"
-        headers = {
-            "Authorization": f"Bearer {secret}",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
-        response = await self.session.post(url, headers=headers)
-        json = await response.json()
-        if "errorCode" in json:
-            raise ApiError(f"Api returned error: {json['errorCode']}")
-        bill.rejected = True
-        bill.waiting = False
+        await bill.cancel()
 
     async def check_bill(self, bill: Bill):
-        url = f"https://api.qiwi.com/partner/bill/v1/bills/{bill.billid}"
-        headers = {
-            "Authorization": f"Bearer {secret}",
-            "Accept": "application/json"
-        }
-        response = await self.session.get(url, headers=headers)
-        json = await response.json()
-        if "errorCode" in json:
-            raise ApiError(f"Api returned error: {json['errorCode']}")
-        bill.rejected = True if json["status"]["value"] == "REJECTED" else False
-        bill.payed = True if json["status"]["value"] == "PAID" else False
-        bill.waiting = True if json["status"]["value"] == "WAITING" else False
+        await bill._check()
 
     async def close(self):
         await self.session.close()

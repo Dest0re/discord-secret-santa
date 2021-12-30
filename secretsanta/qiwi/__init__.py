@@ -1,1 +1,2 @@
-from .qiwi import Qiwi, Bill
+from .qiwi import Qiwi, Bill, qiwi
+from .exceptions import *
