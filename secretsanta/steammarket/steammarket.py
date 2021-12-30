@@ -7,13 +7,12 @@ import base64
 import time
 
 import rsa
-"""
 from bs4 import BeautifulSoup
 import js2py
-"""
 
 from .exceptions import *
 from model import gamegenre, GamePackage, gamepackagegenre, ModelPrototype
+from strings import errors
 
 
 class Package(ModelPrototype):
@@ -31,6 +30,43 @@ class Game:
         self.id = 0
         self.name = ''
         self.packages = []
+
+
+class Friend:
+    def __init__(self, friend_id: int, bot_id: int, api_key: str):
+        self.id = friend_id
+        self.bot_id = bot_id
+        self.api_key = api_key
+        self.session = aiohttp.ClientSession()
+        self.accepted = False
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
+    async def wait_for_accept(self, timeout: float or int):
+        async def wait():
+            while not self.accepted:
+                await self._check()
+                await asyncio.sleep(5)
+
+        await asyncio.wait_for(wait(), timeout=timeout)
+
+    async def _check(self):
+        url = "http://api.steampowered.com/ISteamUser/GetFriendList/v1"
+        params = {
+            "key": self.api_key,
+            "steamid": str(self.bot_id)
+        }
+        response = await self.session.get(url, params=params)
+        json = await response.json()
+        if str(self.id) in [str(i['steamid']) for i in json['friendslist']['friends']]:
+            self.accepted = True
+
+    async def close(self):
+        await self.session.close()
 
 
 if sys.version_info >= (3, 9):
@@ -59,6 +95,8 @@ class SteamStore:
         self.CommunityURL = "https://steamcommunity.com"
         self.session = aiohttp.ClientSession(trust_env=True)
         self.logged_in = False
+        self.api_key = None
+        self.id = None
 
     async def __aenter__(self):
         return self
@@ -66,7 +104,7 @@ class SteamStore:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
-    async def login(self, username, password) -> None:
+    async def login(self, username, password, api_key) -> None:
         await self.session.get(url=f"{self.StoreURL}/?l=russian")
         params = {
             "review_score_preference": 0,
@@ -112,7 +150,15 @@ class SteamStore:
         parameters = json['transfer_parameters']
         for url in json['transfer_urls']:
             await self.session.post(url=url, data=parameters)
+        response = await self.session.get(self.CommunityURL)
+        text = await response.text()
+        soup = BeautifulSoup(text, "lxml")
+        steam_id = js2py.eval_js([i for i in soup.find("div", class_="responsive_page_content").find_all("script")
+                                   if "PHP" in i.text][0].text.replace("\r", "").replace("\n", "").replace("\t",
+                                   "").replace("\\", "").split(";g_strLanguage")[0])
         self.logged_in = True
+        self.id = steam_id
+        self.api_key = api_key
 
     async def fetch_app(self, app_id: int) -> Game:
         url = f"{self.StoreURL}/api/appdetails/?appids={app_id}&cc=RU&l=russian&v=1"
@@ -185,7 +231,7 @@ class SteamStore:
             "bIsGift": "1",
             "GifteeAccountID": str(friend_id),
             "GifteeEmail": "",
-            "GifteeName": "", # Поменять
+            "GifteeName": "User", # Поменять
             "GiftMessage": "Бип буп бип", # Поменять
             "Sentiment": "С наилучшими пожеланиями", # Поменять
             "Signature": "Secret Santa", # Поменять
@@ -223,27 +269,20 @@ class SteamStore:
             json = await response.json()
             if str(json['success']) == "1":
                 break
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
         url = f"{self.StoreURL}/checkout/logsuccessfulpurchase"
         await self.session.post(url)
 
     @login_required
-    async def add_to_friends(self, friend_id: int, friend_name: str) -> None:
-        # not working
-        response = await self.session.get(f"https://steamcommunity.com/id/{friend_name}")
+    async def add_to_friends(self, friend_id: int, friend_name: str) -> Friend:
+        response = await self.session.get(f"{self.CommunityURL}/id/{friend_name}")
         text = await response.text()
         soup = BeautifulSoup(text, "lxml")
-        steamid = js2py.eval_js(
-            soup.find("div", class_="responsive_page_template_content").find("script").text.replace("\r", "").replace(
-                "\n", "").replace("\t", "").replace("\\", "").split(',"summary":')[0] + "}")['steamid']
-
         sessionid = js2py.eval_js([i for i in soup.find("div", class_="responsive_page_content").find_all("script")
                      if "PHP" in i.text][0].text.replace("\r", "").replace("\n", "").replace("\t", "").replace(
                     "\\", "").split(";g_steamID")[0])
-        url = "https://steamcommunity.com/actions/AddFriendAjax"
-        data = {
-            "sessionID": sessionid, "steamid": str(steamid), "accept_invite": "0"
-        }
+        url = f"{self.CommunityURL}/actions/AddFriendAjax"
+        data = f"sessionID={sessionid}&steamid={friend_id}&accept_invite=0"
         headers = {
             "Host": "steamcommunity.com",
             "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0",
@@ -253,24 +292,33 @@ class SteamStore:
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             "X-Requested-With": "XMLHttpRequest",
             "Content-Length": str(len(str(data))),
-            "Origin": "https://steamcommunity.com",
+            "Origin": f"{self.CommunityURL}",
             "Connection": "keep-alive",
-            "Referer": f"https://steamcommunity.com/id/{friend_name}",
+            "Referer": f"{self.CommunityURL}/id/{friend_name}",
             "Cookie": "".join(f"{cookie.key}={cookie.value}; " for key, cookie in self.session.cookie_jar.filter_cookies(self.StoreURL).items())[:-2],
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "Sec-GPC": "1"
         }
-        response = await self.session.post(url, headers=headers, json=data)
+        response = await self.session.post(url, headers=headers, data=data)
+        json = await response.json()
+        if "failed_invites" in json:
+            error = str(json['failed_invites_result'][0])
+            if error != "41" and error in errors:
+                raise FriendInviteError(errors[error])
+            elif error != "41":
+                raise FriendInviteError("Unknown error happened.")
+            else:
+                print("WARNING: Friend invite returned 41")
+        return Friend(bot_id=self.id, friend_id=friend_id, api_key=self.api_key)
 
     async def close(self) -> None:
         await self.session.close()
 
 
 async def main():
-    async with SteamStore() as steam:
-        await steam.add_to_friends(76561199225756232, "h0ly_jesus")
+    pass
 
 
 if __name__ == "__main__":

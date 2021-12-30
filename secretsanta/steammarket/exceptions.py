@@ -24,3 +24,7 @@ class TooManyRequests(SteamStoreException):
 
 class PaymentError(SteamStoreException):
     pass
+
+
+class FriendInviteError(SteamStoreException):
+    pass
