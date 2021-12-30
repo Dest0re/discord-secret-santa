@@ -1,4 +1,4 @@
-from peewee import PrimaryKeyField, ForeignKeyField
+from peewee import BooleanField, PrimaryKeyField, ForeignKeyField
 
 from .basemodel import BaseModel
 from .pcperformance import PCPerformance
@@ -11,6 +11,7 @@ class User(BaseModel):
     discord_profile = ForeignKeyField(DiscordProfile, column_name='discord_profile_id')
     steam_profile = ForeignKeyField(SteamProfile, column_name='steam_profile_id', null=True)
     pc_performance = ForeignKeyField(PCPerformance, column_name='pc_performance_id', null=True)
+    in_process = BooleanField(column_name='in_process')
 
     class Meta:
         table_name = 'User'
