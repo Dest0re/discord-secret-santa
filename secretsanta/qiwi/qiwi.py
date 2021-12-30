@@ -104,7 +104,7 @@ class Qiwi:
         json = await response.json()
         if "errorCode" in json:
             raise ApiError(f"Api returned error: {json['errorCode']}")
-        return Bill(bill_id, value, game_name, json)
+        return Bill(self._secret, bill_id, value, game_name, json)
 
     async def cancel_bill(self, bill: Bill):
         await bill.cancel()
