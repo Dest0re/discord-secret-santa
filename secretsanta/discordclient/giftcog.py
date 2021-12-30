@@ -5,7 +5,7 @@ from .basecog import BaseCog
 from .handlers import RegionsNotify, SaveBasicUserInformation, \
     SelectGameHandler, PaymentHandler, SelectGameGenresHandler, \
     SelectGameRequirementsHandler, SelectPreferredGenresHandler, \
-    SelectPCPerformanceHandler, SuccessHandler
+    SelectPCPerformanceHandler, SuccessHandler, AskForSteamUrlHandler, MinimalPriceNotify
 
 
 class GiftCog(BaseCog):
@@ -15,6 +15,8 @@ class GiftCog(BaseCog):
         (
             handler 
             .set_next(SaveBasicUserInformation())
+            .set_next(AskForSteamUrlHandler())
+            .set_next(MinimalPriceNotify())
             .set_next(SelectGameHandler()) 
             .set_next(PaymentHandler()) 
             .set_next(SelectGameGenresHandler()) 
