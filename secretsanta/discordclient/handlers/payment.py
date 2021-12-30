@@ -1,15 +1,20 @@
+import asyncio
 import discord
 
 from .basehandler import BaseHandler, StopHandleException
-from utils.embed import DebugText, ErrorText, SuccessText
+from utils.embed import DebugText, ErrorText, SuccessText, EmbedText
 from model import Present, User, DiscordProfile
 from utils.strings import text_strings as ts
+from utils.environmentvariables import EnvironmentVariables
+import qiwi
+
+env = EnvironmentVariables('QIWI_SECRET')
+
+payment = qiwi.Qiwi(env.QIWI_SECRET)
 
 
 class PaymentHandler(BaseHandler):
     async def _handle(self, ctx: discord.ApplicationContext):
-        await ctx.respond(embed=DebugText("Оплата... (всегда успешная)"))
-        
         present = (
             Present
             .select()
@@ -24,6 +29,29 @@ class PaymentHandler(BaseHandler):
             await ctx.send(embed=ErrorText("Подарок не найден"))
             raise StopHandleException("Payment")
         
+        
+        bill = await payment.create_bill(
+            value=present.game_package.price, 
+            game_name=ts.payment_form_comment.format(game_name=present.game_package.name)
+        )
+
+        await ctx.respond(
+            embed=EmbedText(
+                ts.request_payment.format(
+                    game_price=present.game_package.price,
+                    pay_url=bill.payurl
+                )
+            ), 
+            ephemeral=True
+        )
+
+        try:
+            await bill.wait_for_payment(120)
+        except asyncio.TimeoutError:
+            await bill.cancel()
+            await ctx.respond(embed=ErrorText(ts.timeout_error))
+            raise StopHandleException("Payment")
+
         present.paid = True
         present.save()
 
