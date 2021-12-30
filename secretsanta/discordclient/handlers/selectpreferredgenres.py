@@ -57,7 +57,7 @@ class SelectPreferredGenresHandler(BaseHandler):
             raise StopHandleException("Preferred game genres select")
         else:
             dropdown.disabled = True
-            embed = SuccessText(ts.game_genres_select_success.format(game_genres='\n'.join(map(lambda g: g.name, game_genres))))
+            embed = SuccessText(ts.game_genres_select_success.format(game_genres='\n'.join(map(lambda g: f'**{g.name}**', game_genres))))
             
             try:
                 await message.edit(
@@ -69,4 +69,3 @@ class SelectPreferredGenresHandler(BaseHandler):
 
         for genre in game_genres:
             UserPreferredGenre.create(user=user, genre=genre)
-
