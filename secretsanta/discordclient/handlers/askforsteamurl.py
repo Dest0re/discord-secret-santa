@@ -72,8 +72,7 @@ class AskForSteamUrlHandler(BaseHandler):
 
                     await confirm_message.edit(view=select_view)
 
-                    steam_profile = SteamProfile(steam_id32=steam_id32, steam_id64=steam_id64).save()
-                    user.steam_profile = steam_profile
+                    user.steam_profile = SteamProfile.get_or_create(steam_id32=steam_id32, steam_id64=steam_id64)[0]
                     user.save()
 
                     break
