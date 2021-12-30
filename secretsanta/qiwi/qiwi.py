@@ -1,5 +1,5 @@
 from random import choice
-import datetime
+from datetime import datetime, timedelta
 import asyncio
 import string
 
@@ -81,17 +81,16 @@ class Qiwi:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
-    async def create_bill(self, value: float, game_name: str) -> Bill:
+    async def create_bill(self, value: float, comment: str) -> Bill:
         bill_id = "".join(choice(string.ascii_lowercase + string.digits + "-_") for i in range(36))
-        expirationdatetime = (datetime.datetime.now() + datetime.timedelta(minutes=15))
-        expirationdatetime = expirationdatetime.replace(microsecond=0).isoformat() + "+03:00"
+        expirationdatetime = (datetime.now().replace(microsecond=0) + timedelta(minutes=15)).isoformat() + "+03:00"
         url = CHECK_BILL_URL.format(bill_id=bill_id)
         data = {
             'amount': {
                 'currency': 'RUB',
                 'value': str(value)
             },
-            'comment': game_name,
+            'comment': comment,
             'expirationDateTime': expirationdatetime
         }
         headers = {
@@ -99,12 +98,11 @@ class Qiwi:
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
-        print(headers, data)
         response = await self.session.put(url, headers=headers, json=data)
         json = await response.json()
         if "errorCode" in json:
             raise ApiError(f"Api returned error: {json['errorCode']}")
-        return Bill(self._secret, bill_id, value, game_name, json)
+        return Bill(self._secret, bill_id, value, comment, json)
 
     async def cancel_bill(self, bill: Bill):
         await bill.cancel()
@@ -115,16 +113,3 @@ class Qiwi:
     async def close(self):
         await self.session.close()
 
-
-async def main():
-    qiwi = Qiwi()
-    bill = await qiwi.create_bill(1.0, "test")
-    print(bill.payurl)
-    await bill.wait_for_payment(300.0)
-    print("payment successful")
-    await bill.session.close()
-    await qiwi.session.close()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

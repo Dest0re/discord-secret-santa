@@ -7,6 +7,10 @@ import base64
 import time
 
 import rsa
+"""
+from bs4 import BeautifulSoup
+import js2py
+"""
 
 from .exceptions import *
 from model import gamegenre, GamePackage, gamepackagegenre, ModelPrototype
@@ -52,6 +56,7 @@ def login_required(func):
 class SteamStore:
     def __init__(self):
         self.StoreURL = "https://store.steampowered.com"
+        self.CommunityURL = "https://steamcommunity.com"
         self.session = aiohttp.ClientSession(trust_env=True)
         self.logged_in = False
 
@@ -219,14 +224,26 @@ class SteamStore:
             if str(json['success']) == "1":
                 break
             await asyncio.sleep(1)
-        url = "https://store.steampowered.com/checkout/logsuccessfulpurchase"
+        url = f"{self.StoreURL}/checkout/logsuccessfulpurchase"
         await self.session.post(url)
 
     @login_required
     async def add_to_friends(self, friend_id: int, friend_name: str) -> None:
         # not working
+        response = await self.session.get(f"https://steamcommunity.com/id/{friend_name}")
+        text = await response.text()
+        soup = BeautifulSoup(text, "lxml")
+        steamid = js2py.eval_js(
+            soup.find("div", class_="responsive_page_template_content").find("script").text.replace("\r", "").replace(
+                "\n", "").replace("\t", "").replace("\\", "").split(',"summary":')[0] + "}")['steamid']
+
+        sessionid = js2py.eval_js([i for i in soup.find("div", class_="responsive_page_content").find_all("script")
+                     if "PHP" in i.text][0].text.replace("\r", "").replace("\n", "").replace("\t", "").replace(
+                    "\\", "").split(";g_steamID")[0])
         url = "https://steamcommunity.com/actions/AddFriendAjax"
-        sessionid = self.session.cookie_jar.filter_cookies(self.StoreURL)['sessionid'].value
+        data = {
+            "sessionID": sessionid, "steamid": str(steamid), "accept_invite": "0"
+        }
         headers = {
             "Host": "steamcommunity.com",
             "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0",
@@ -235,18 +252,15 @@ class SteamStore:
             "Accept-Encoding": "gzip, deflate, br",
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             "X-Requested-With": "XMLHttpRequest",
-            "Content-Length": "76",
+            "Content-Length": str(len(str(data))),
             "Origin": "https://steamcommunity.com",
             "Connection": "keep-alive",
             "Referer": f"https://steamcommunity.com/id/{friend_name}",
-            "Cookie": "".join(f"{cookie.key}={cookie.value}; " for key, cookie in self.session.cookie_jar.filter_cookies("https://steamcommunity.com").items())[:-2],
+            "Cookie": "".join(f"{cookie.key}={cookie.value}; " for key, cookie in self.session.cookie_jar.filter_cookies(self.StoreURL).items())[:-2],
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
             "Sec-Fetch-Site": "same-origin",
             "Sec-GPC": "1"
-        }
-        data = {
-            "sessionID": sessionid, "steamid": str(friend_id), "accept_invite": "0"
         }
         response = await self.session.post(url, headers=headers, json=data)
 
@@ -255,7 +269,9 @@ class SteamStore:
 
 
 async def main():
-    pass
+    async with SteamStore() as steam:
+        await steam.login(username="ivan20030312003", password="C76FAwHCrqqpKJUzEbgFGzFTFvdDLEXw")
+        await steam.add_to_friends(76561199225756232, "h0ly_jesus")
 
 
 if __name__ == "__main__":
