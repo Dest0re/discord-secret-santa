@@ -32,7 +32,6 @@ class AskForSteamUrlHandler(BaseHandler):
             raise StopHandleException('Ask for steam url')
 
         if user.steam_profile:
-            await ctx.send(embed=DebugText('Пользователь уже указал профиль Стима'))
             return
         
         await ctx.respond(embed=EmbedText(ts.ask_for_steam_profile_url))
