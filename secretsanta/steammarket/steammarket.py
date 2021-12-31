@@ -57,13 +57,19 @@ class Friend:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
+    def __del__(self):
+        asyncio.create_task(self.close())
+
     async def wait_for_accept(self, timeout: float or int):
         async def wait():
             while not self.accepted:
                 await self._check()
                 await asyncio.sleep(10)
 
-        await asyncio.wait_for(wait(), timeout=timeout)
+        try:
+            await asyncio.wait_for(wait(), timeout=timeout)
+        finally:
+            await self.close()
 
     async def _check(self):
         url = "http://api.steampowered.com/ISteamUser/GetFriendList/v1"
@@ -114,6 +120,9 @@ class SteamStore:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
+
+    def __del__(self):
+        asyncio.create_task(self.close())
 
     async def login(self, username, password, api_key) -> None:
         await self.session.get(url=f"{self.StoreURL}/?l=russian")

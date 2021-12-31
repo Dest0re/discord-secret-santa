@@ -29,13 +29,20 @@ class Bill:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
+    def __del__(self):
+        asyncio.create_task(self.close())
+
     async def wait_for_payment(self, timeout: float):
         async def wait(self):
             while not self.payed and not self.rejected:
                 await self._check()
                 await asyncio.sleep(5)
 
-        await asyncio.wait_for(wait(self), timeout)
+        try:
+            await asyncio.wait_for(wait(self), timeout)
+        finally:
+            await self.close()
+
 
     async def cancel(self):
         url = REJECT_BILL_URL.format(bill_id=self.id)
@@ -50,6 +57,7 @@ class Bill:
             raise ApiError(f"Api returned error: {json['errorCode']}")
         self.rejected = True
         self.waiting = False
+        await self.close()
 
     async def _check(self):
         url = CHECK_BILL_URL.format(bill_id=self.id)
@@ -81,6 +89,9 @@ class Qiwi:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
+    def __del__(self):
+        asyncio.create_task(self.close())
+
     async def create_bill(self, value: float, comment: str) -> Bill:
         bill_id = "".join(choice(string.ascii_lowercase + string.digits + "-_") for i in range(36))
         expirationdatetime = (datetime.now().replace(microsecond=0) + timedelta(minutes=15)).isoformat() + "+03:00"
@@ -102,10 +113,12 @@ class Qiwi:
         json = await response.json()
         if "errorCode" in json:
             raise ApiError(f"Api returned error: {json['errorCode']}")
+        await self.close()
         return Bill(self._secret, bill_id, value, comment, json)
 
     async def cancel_bill(self, bill: Bill):
         await bill.cancel()
+        await bill.close()
 
     async def check_bill(self, bill: Bill):
         await bill._check()
