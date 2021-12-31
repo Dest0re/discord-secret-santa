@@ -46,7 +46,7 @@ class SelectGameHandler(BaseHandler):
             package = (await dropdown.get_choices(120)).game_package
         except asyncio.TimeoutError:
             await ctx.respond(embed=ErrorText(ts.timeout_error))
-            raise StopHandleException
+            raise StopHandleException("Select Game")
 
         dropdown.disabled = True
         await message.edit(
