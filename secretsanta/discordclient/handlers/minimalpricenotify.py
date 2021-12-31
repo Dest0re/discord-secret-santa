@@ -26,7 +26,6 @@ class MinimalPriceNotify(BaseHandler):
         present_price = 0 if present_price == None else present_price
 
         if present_price >= MINIMAL_PRICE:
-            await ctx.respond(embed=DebugText('Пользователь подарил достаточно, предупреждение слать не надо'))
             return
         
         button = PersonalAcceptButton(ctx.author)
