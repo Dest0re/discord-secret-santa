@@ -5,7 +5,7 @@ import string
 
 import aiohttp
 
-from .exceptions import *
+#from .exceptions import *
 
 REJECT_BILL_URL = 'https://api.qiwi.com/partner/bill/v1/bills/{bill_id}/reject'
 CHECK_BILL_URL = 'https://api.qiwi.com/partner/bill/v1/bills/{bill_id}'
@@ -90,7 +90,7 @@ class Qiwi:
         await self.close()
 
     def __del__(self):
-        asyncio.create_task(self.close())
+        asyncio.create_task(self.close)
 
     async def create_bill(self, value: float, comment: str) -> Bill:
         bill_id = "".join(choice(string.ascii_lowercase + string.digits + "-_") for i in range(36))
@@ -113,7 +113,6 @@ class Qiwi:
         json = await response.json()
         if "errorCode" in json:
             raise ApiError(f"Api returned error: {json['errorCode']}")
-        await self.close()
         return Bill(self._secret, bill_id, value, comment, json)
 
     async def cancel_bill(self, bill: Bill):
@@ -125,4 +124,3 @@ class Qiwi:
 
     async def close(self):
         await self.session.close()
-
