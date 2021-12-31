@@ -26,7 +26,7 @@ class AddGiftMessage(BaseHandler):
         message = await ctx.respond(embed=EmbedText(ts.ask_for_gift_message))
 
         try:
-            user_message = await ctx.bot.wait_for('message', check=lambda m: m.channel == ctx.channel and m.author == ctx.author, timeout=120)
+            user_message = await ctx.bot.wait_for('message', check=lambda m: m.channel.id == ctx.channel.id and m.author == ctx.author, timeout=120)
         except asyncio.TimeoutError:
             await ctx.respond(embed=ErrorText(ts.timeout_error))
             raise StopHandleException("Add gift message")

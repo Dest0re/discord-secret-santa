@@ -42,7 +42,7 @@ class AskForSteamUrlHandler(BaseHandler):
             for _ in range(3):
                 message = await ctx.bot.wait_for(
                     'message',
-                    check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
+                    check=lambda m: m.author == ctx.author and m.channel.id == ctx.channel.id,
                     timeout=300
                 )
 

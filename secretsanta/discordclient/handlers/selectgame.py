@@ -65,7 +65,7 @@ class SelectGameHandler(BaseHandler):
             for _ in range(3):
                 message = await ctx.bot.wait_for(
                     'message', 
-                    check=lambda m: m.channel == ctx.channel and m.author == ctx.author,
+                    check=lambda m: m.channel.id == ctx.channel_id and m.author == ctx.author,
                     timeout=300
                 )
 
@@ -85,7 +85,7 @@ class SelectGameHandler(BaseHandler):
                     
                     model_package, created = model(game_package)
 
-                    model_user = User.select().join(DiscordProfile).where(DiscordProfile.discord_id == ctx.author.id).limit(1).execute()[0]
+                    model_user = User.select().join(DiscordProfile).where(DiscordProfile.discord_id == ctx.author.id).get()
                     
                     present = Present.create(user=model_user, game_package=model_package, paid=False)
 
