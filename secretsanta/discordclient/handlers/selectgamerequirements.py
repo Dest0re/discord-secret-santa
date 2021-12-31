@@ -27,7 +27,6 @@ class SelectGameRequirementsHandler(BaseHandler):
         )
 
         if not package:
-            print(tuple(package))
             await ctx.respond(embed=DebugText('Не нашли подарка'))
             raise StopHandleException('Game requirements select')
 
