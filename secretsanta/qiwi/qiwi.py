@@ -38,10 +38,7 @@ class Bill:
                 await self._check()
                 await asyncio.sleep(5)
 
-        try:
-            await asyncio.wait_for(wait(self), timeout)
-        finally:
-            await self.close()
+        await asyncio.wait_for(wait(self), timeout)
 
 
     async def cancel(self):
@@ -117,7 +114,6 @@ class Qiwi:
 
     async def cancel_bill(self, bill: Bill):
         await bill.cancel()
-        await bill.close()
 
     async def check_bill(self, bill: Bill):
         await bill._check()
