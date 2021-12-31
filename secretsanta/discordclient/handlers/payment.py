@@ -46,7 +46,7 @@ class PaymentHandler(BaseHandler):
         )
 
         try:
-            #await bill.wait_for_payment(180)
+            await bill.wait_for_payment(300)
             pass
         except asyncio.TimeoutError:
             await bill.cancel()
