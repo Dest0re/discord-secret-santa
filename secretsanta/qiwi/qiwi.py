@@ -5,7 +5,7 @@ import string
 
 import aiohttp
 
-#from .exceptions import *
+from .exceptions import *
 
 REJECT_BILL_URL = 'https://api.qiwi.com/partner/bill/v1/bills/{bill_id}/reject'
 CHECK_BILL_URL = 'https://api.qiwi.com/partner/bill/v1/bills/{bill_id}'
