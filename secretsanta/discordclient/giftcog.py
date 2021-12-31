@@ -1,4 +1,5 @@
 import discord
+from discord.ext import commands
 from discord.commands import slash_command
 
 from .basecog import BaseCog
@@ -10,7 +11,8 @@ from .handlers import RegionsNotify, SaveBasicUserInformation, \
 
 
 class GiftCog(BaseCog):
-    @slash_command(name='gift', guild_ids=[920707642308055100, 625032816576561170])
+    @slash_command(name='gift')
+    @commands.dm_only()
     async def _present_command(self, ctx: discord.ApplicationContext):
         handler = SaveBasicUserInformation()
         (

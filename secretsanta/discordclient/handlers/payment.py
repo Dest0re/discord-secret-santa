@@ -32,7 +32,7 @@ class PaymentHandler(BaseHandler):
         
         bill = await payment.create_bill(
             value=present.game_package.price,
-            game_name=ts.payment_form_comment.format(game_name=present.game_package.name)
+            comment=ts.payment_form_comment.format(game_name=present.game_package.name)
         )
 
         await ctx.respond(
