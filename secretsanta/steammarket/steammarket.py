@@ -12,7 +12,18 @@ import js2py
 
 from .exceptions import *
 from model import gamegenre, GamePackage, gamepackagegenre, ModelPrototype
-from strings import errors
+from utils.strings import text_strings as ts
+
+
+errors = {
+    "11": "user_in_black_list_error",
+    "15": "friend_list_full_error",
+    "24": "account_does_not_fit_error",
+    "25": "my_friend_list_full_error",
+    "40": "in_black_list_error",
+    "41": "try_again_later_error",
+    "84": "too_many_requests_error"
+}
 
 
 class Package(ModelPrototype):
@@ -50,7 +61,7 @@ class Friend:
         async def wait():
             while not self.accepted:
                 await self._check()
-                await asyncio.sleep(5)
+                await asyncio.sleep(10)
 
         await asyncio.wait_for(wait(), timeout=timeout)
 
@@ -243,7 +254,7 @@ class SteamStore:
             "TPBankID": "",
             "BankAccountID": "",
             "bSaveBillingAddress": "0",
-            "gidPaymentID": "",
+            "gidPaymentID": "",  # В случай если мы привяжем Paypal или карточку
             "bUseRemainingSteamAccount": "0",
             "bPreAuthOnly": "0",
             "sessionid": sessionid
@@ -274,8 +285,8 @@ class SteamStore:
         await self.session.post(url)
 
     @login_required
-    async def add_to_friends(self, friend_id: int, friend_name: str) -> Friend:
-        response = await self.session.get(f"{self.CommunityURL}/id/{friend_name}")
+    async def add_to_friends(self, friend_id: int) -> Friend:
+        response = await self.session.get(f"{self.CommunityURL}")
         text = await response.text()
         soup = BeautifulSoup(text, "lxml")
         sessionid = js2py.eval_js([i for i in soup.find("div", class_="responsive_page_content").find_all("script")
@@ -294,7 +305,6 @@ class SteamStore:
             "Content-Length": str(len(str(data))),
             "Origin": f"{self.CommunityURL}",
             "Connection": "keep-alive",
-            "Referer": f"{self.CommunityURL}/id/{friend_name}",
             "Cookie": "".join(f"{cookie.key}={cookie.value}; " for key, cookie in self.session.cookie_jar.filter_cookies(self.StoreURL).items())[:-2],
             "Sec-Fetch-Dest": "empty",
             "Sec-Fetch-Mode": "cors",
@@ -306,7 +316,7 @@ class SteamStore:
         if "failed_invites" in json:
             error = str(json['failed_invites_result'][0])
             if error != "41" and error in errors:
-                raise FriendInviteError(errors[error])
+                raise FriendInviteError(getattr(ts, errors[error]))
             elif error != "41":
                 raise FriendInviteError("Unknown error happened.")
             else:
@@ -315,11 +325,3 @@ class SteamStore:
 
     async def close(self) -> None:
         await self.session.close()
-
-
-async def main():
-    pass
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
