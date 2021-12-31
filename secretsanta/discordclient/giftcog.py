@@ -8,10 +8,11 @@ from .handlers import RegionsNotify, SaveBasicUserInformation, \
     SelectGameRequirementsHandler, SelectPreferredGenresHandler, \
     SelectPCPerformanceHandler, SuccessHandler, AskForSteamUrlHandler, \
     MinimalPriceNotify, CheckIfInProcess, BeginGiftingProcess, EndGiftingProcess, AddGiftMessage
+from utils.strings import text_strings as ts
 
 
 class GiftCog(BaseCog):
-    @slash_command(name='gift')
+    @slash_command(name='gift', description=ts.gift_command_description)
     @commands.dm_only()
     async def _present_command(self, ctx: discord.ApplicationContext):
         handler = SaveBasicUserInformation()
