@@ -18,7 +18,7 @@ class AppDoesNotExist(SteamStoreException):
     pass
 
 
-class TooManyRequests(SteamStoreException):
+class LoginError(SteamStoreException):
     pass
 
 

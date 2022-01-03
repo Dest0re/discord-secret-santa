@@ -155,10 +155,8 @@ class SteamStore:
         }
         response = await self.session.post(f"{self.StoreURL}/login/dologin/", data=data)
         json = await response.json()
-        message = "There have been too many login failures from your network in a short time period.  " \
-                  "Please wait and try again later."
-        if json['message'] == message:
-            raise TooManyRequests(message)
+        if not json['success'] and json['message'] != "":
+            raise LoginError(json['message'])
         while not json['success']:
             twofactor = await to_thread(input, "Нужен код SteamGuard >>> ") if json['requires_twofactor'] else ""
             emailauth = await to_thread(input, f"Нужен код из почты {json['emaildomain']} >>> ") \
