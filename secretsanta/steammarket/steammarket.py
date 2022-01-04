@@ -100,7 +100,10 @@ else:
 
 
 class SteamStore:
-    def __init__(self):
+    def __init__(self, username: str, password: str, api_key: str):
+        self.username = username
+        self.password = password
+        self.api_key = api_key
         self.StoreURL = "https://store.steampowered.com"
         self.CommunityURL = "https://steamcommunity.com"
         self.cookiejar = aiohttp.CookieJar()
@@ -122,26 +125,23 @@ class SteamStore:
         asyncio.create_task(self.close())
 
     async def login(self) -> None:
-        username = EnvironmentVariables("STEAM_USERNAME")
-        password = EnvironmentVariables("STEAM_PASSWORD")
-        api_key = EnvironmentVariables("STEAM_APIKEY")
         await self.session.get(url=f"{self.StoreURL}/?l=russian")
         params = {
             "review_score_preference": 0,
             "l": "russian",
             "pagev6": "true"
         }
-        values = f"?username={username}"
+        values = f"?username={self.username}"
         response = await self.session.get(url=f"{self.StoreURL}/login/getrsakey/{values}", params=params)
         json_response = await response.json()
         publickey_mod = int(json_response['publickey_mod'], 16)
         publickey_exp = int(json_response['publickey_exp'], 16)
         rsa_timestamp = json_response['timestamp']
         encrypted_password = \
-            base64.b64encode(rsa.encrypt(password.encode('utf-8'), rsa.PublicKey(publickey_mod, publickey_exp)))
+            base64.b64encode(rsa.encrypt(self.password.encode('utf-8'), rsa.PublicKey(publickey_mod, publickey_exp)))
         data = {
             'password': encrypted_password.decode("utf-8"),
-            'username': username,
+            'username': self.username,
             'twofactorcode': '',
             'emailauth': '',
             'loginfriendlyname': '',
@@ -185,7 +185,6 @@ class SteamStore:
                                    "").replace("\\", "").split(";g_strLanguage")[0])
         self.logged_in = True
         self.id = steam_id
-        self.api_key = api_key
 
     async def fetch_app(self, app_id: int) -> Game:
         url = f"{self.StoreURL}/api/appdetails/?appids={app_id}&cc=RU&l=russian&v=1"
