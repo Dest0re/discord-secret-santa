@@ -1,2 +1,2 @@
-from .steammarket import SteamStore, Game, Friend
+from .steammarket import SteamStore, Game, FriendRequest
 from .exceptions import *
