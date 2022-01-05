@@ -230,8 +230,6 @@ class SteamStore:
     async def buy_gifts(self, packages_id, steam_id32: int, username: str, message: str, signature: str) -> None:
         if not self.logged_in:
             raise LoginRequired("You need to login first")
-        user_games = self.user_games()
-        elif any(True if game_id in )
         url = "https://store.steampowered.com/cart/"
         response = await self.session.get(url)
         soup = BeautifulSoup(await response.text(), "html.parser")
