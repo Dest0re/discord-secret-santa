@@ -225,7 +225,7 @@ class SteamStore:
 
     async def add_app_ids_to_package(self):
         for package in GamePackage.select():
-            package.app_id = await self.fetch_app_id(package.steam_id)
+            package.app_id = await self.fetch_app_id(package.steam_app_id)
             package.save()
 
     async def _add_to_cart(self, package_id: int) -> None:
