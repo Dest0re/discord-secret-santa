@@ -33,6 +33,7 @@ class Package(ModelPrototype):
         self.id = 0
         self.name = ''
         self.price = 0
+        self.app_id = 0
 
     def __model__(self):
         return GamePackage.get_or_create(steam_id=self.id, name=self.name, price=self.price)
@@ -213,6 +214,7 @@ class SteamStore:
         package = Package()
         package.name = json_response['data']['name']
         package.id = package_id
+        package.app_id = json_response['data']['apps'][0]['id']
         package.price = int(json_response['data']['price']['final']) / 100
         return package
 
@@ -228,6 +230,8 @@ class SteamStore:
     async def buy_gifts(self, packages_id, steam_id32: int, username: str, message: str, signature: str) -> None:
         if not self.logged_in:
             raise LoginRequired("You need to login first")
+        user_games = self.user_games()
+        elif any(True if game_id in )
         url = "https://store.steampowered.com/cart/"
         response = await self.session.get(url)
         soup = BeautifulSoup(await response.text(), "html.parser")
@@ -356,16 +360,15 @@ class SteamStore:
                 print("WARNING: Friend Request invite returned 41")
         return FriendRequest(bot_id=self.id, friend_id=steam_id64, api_key=self.api_key)
 
-    async def user_games(self, steam_id64):
+    async def user_games(self, steam_id64) -> list:
         url = f"https://steamcommunity.com/profiles/{steam_id64}/games?tab=all&xml=1"
         response = await self.session.get(url)
         soup = BeautifulSoup(await response.text(), "html.parser")
-        games = []
+        games_ids = []
         for game in soup.find_all("game"):
             app_id = game.appid.text
-            fetched_game = await self.fetch_app(app_id)
-            games.append(fetched_game)
-        return games
+            games_ids.append(app_id)
+        return games_ids
 
     async def close(self) -> None:
         self.session.cookie_jar.save("saved_cookies")
