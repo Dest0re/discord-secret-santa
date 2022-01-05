@@ -10,6 +10,7 @@ class GamePackage(BaseModel):
     steam_id = BigIntegerField(column_name='game_package_steam_id')
     price = FloatField(column_name='price')
     name = TextField(column_name='game_package_name')
+    app_id = TextField(column_name="steam_app_id")
 
     class Meta:
         table_name = 'GamePackage'

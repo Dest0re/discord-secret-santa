@@ -225,7 +225,7 @@ class SteamStore:
 
     async def add_app_ids_to_package(self):
         for package in GamePackage.select():
-            package.app_id = await self.fetch_app_id(package.steam_app_id)
+            package.app_id = await self.fetch_app_id(package.steam_id)
             package.save()
 
     async def _add_to_cart(self, package_id: int) -> None:
@@ -240,14 +240,7 @@ class SteamStore:
     async def buy_gifts(self, packages_id, steam_id32: int, username: str, message: str, signature: str) -> None:
         if not self.logged_in:
             raise LoginRequired("You need to login first")
-        url = "https://store.steampowered.com/cart/"
-        response = await self.session.get(url)
-        soup = BeautifulSoup(await response.text(), "html.parser")
-        url = soup.find("a", id="btn_purchase_gift").get("href")
-        response = await self.session.get(url)
-        soup = BeautifulSoup(await response.text(), "html.parser")
-        stored_card_id = soup.find("input", id="stored_card_id").get("value")
-        stored_payment_method = soup.find("input", id="stored_payment_method").get("value")
+        response = await self.session.get("https://store.steampowered.com/checkout/?purchasetype=gift&snr=1_8_4__503")
         if response.status == 302:
             await self.login()
         for package_id in packages_id:
@@ -257,12 +250,12 @@ class SteamStore:
         data = {
             "gidShoppingCart": gidShoppingCart,
             "gidReplayOfTransID": "-1",
-            "PaymentMethod": stored_payment_method,
+            "PaymentMethod": EnvironmentVariables("CARD_TYPE").CARD_TYPE,
             "abortPendingTransactions": "0",
-            "bHasCardInfo": "0",
-            "CardNumber": "",
-            "CardExpirationYear": "",
-            "CardExpirationMonth": "",
+            "bHasCardInfo": "1",
+            "CardNumber": EnvironmentVariables("CARD_NUMBER").CARD_NUMBER,
+            "CardExpirationYear": EnvironmentVariables("CARD_YEAR").CARD_YEAR,
+            "CardExpirationMonth": EnvironmentVariables("CARD_MONTH").CARD_MONTH,
             "FirstName": "Ivan",
             "LastName": "Ivanov",
             "Address": "Lenina 1",
@@ -296,14 +289,16 @@ class SteamStore:
             "TPBankID": "",
             "BankAccountID": "",
             "bSaveBillingAddress": "0",
-            "gidPaymentID": str(stored_card_id),
+            "gidPaymentID": "",
             "bUseRemainingSteamAccount": "0",
             "bPreAuthOnly": "0",
             "sessionid": sessionid
         }
+        print(data)
         url = f"{self.StoreURL}/checkout/inittransaction/"
         response = await self.session.post(url, data=data)
         json_response = await response.json()
+        print(json_response)
         if str(json_response['success']) != "1":
             raise PaymentError("PaymentError")
         transid = json_response['transid']
@@ -313,7 +308,7 @@ class SteamStore:
         url = f"{self.StoreURL}/checkout/finalizetransaction/"
         data = {
             "transid": str(transid),
-            "CardCVV2": EnvironmentVariables("CREDIT_CARD_CVV"),
+            "CardCVV2": EnvironmentVariables("CREDIT_CARD_CVV").CREDIT_CARD_CVV,
             "browserInfo": '{"language": "en-US", "javaEnabled": "false", '
                            '"colorDepth": 24, "screenHeight": 1080, "screenWidth": 1920}'
         }
