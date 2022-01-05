@@ -16,7 +16,6 @@ from model import gamegenre, GamePackage, gamepackagegenre, ModelPrototype
 from utils.strings import text_strings as ts
 from utils import EnvironmentVariables
 
-
 errors = {
     "11": "user_in_black_list_error",
     "15": "friend_list_full_error",
@@ -218,6 +217,17 @@ class SteamStore:
         package.price = int(json_response['data']['price']['final']) / 100
         return package
 
+    async def fetch_app_id(self, package_id: int) -> int:
+        url = f"{self.StoreURL}/api/packagedetails/?packageids={package_id}&cc=RU&l=russian&v=1"
+        response = await self.session.get(url)
+        json_response = (await response.json())[str(package_id)]
+        return json_response['data']['apps'][0]['id']
+
+    async def add_app_ids_to_package(self):
+        for package in GamePackage.select():
+            package.app_id = await self.fetch_app_id(package.steam_id)
+            package.save()
+
     async def _add_to_cart(self, package_id: int) -> None:
         if not self.logged_in:
             raise LoginRequired("You need to login first")
@@ -235,6 +245,9 @@ class SteamStore:
         soup = BeautifulSoup(await response.text(), "html.parser")
         url = soup.find("a", id="btn_purchase_gift").get("href")
         response = await self.session.get(url)
+        soup = BeautifulSoup(await response.text(), "html.parser")
+        stored_card_id = soup.find("input", id="stored_card_id").get("value")
+        stored_payment_method = soup.find("input", id="stored_payment_method").get("value")
         if response.status == 302:
             await self.login()
         for package_id in packages_id:
@@ -244,12 +257,12 @@ class SteamStore:
         data = {
             "gidShoppingCart": gidShoppingCart,
             "gidReplayOfTransID": "-1",
-            "PaymentMethod": "", # visa/mastercard
+            "PaymentMethod": stored_payment_method,
             "abortPendingTransactions": "0",
-            "bHasCardInfo": "1",
-            "CardNumber": "", # сюда номер карты
-            "CardExpirationYear": "", # сюда год истечения карты
-            "CardExpirationMonth": "", # сюда месяц истечения карты
+            "bHasCardInfo": "0",
+            "CardNumber": "",
+            "CardExpirationYear": "",
+            "CardExpirationMonth": "",
             "FirstName": "Ivan",
             "LastName": "Ivanov",
             "Address": "Lenina 1",
@@ -273,7 +286,7 @@ class SteamStore:
             "GifteeEmail": "",
             "GifteeName": username,
             "GiftMessage": message,
-            "Sentiment": "С наилучшими пожеланиями", # Поменять
+            "Sentiment": "С наилучшими пожеланиями",
             "Signature": signature,
             "ScheduledSendOnDate": "0",
             "BankAccount": "",
@@ -283,7 +296,7 @@ class SteamStore:
             "TPBankID": "",
             "BankAccountID": "",
             "bSaveBillingAddress": "0",
-            "gidPaymentID": "",  # В случай если привязан Paypal или карточка
+            "gidPaymentID": str(stored_card_id),
             "bUseRemainingSteamAccount": "0",
             "bPreAuthOnly": "0",
             "sessionid": sessionid
@@ -300,7 +313,7 @@ class SteamStore:
         url = f"{self.StoreURL}/checkout/finalizetransaction/"
         data = {
             "transid": str(transid),
-            "CardCVV2": "000",
+            "CardCVV2": EnvironmentVariables("CREDIT_CARD_CVV"),
             "browserInfo": '{"language": "en-US", "javaEnabled": "false", '
                            '"colorDepth": 24, "screenHeight": 1080, "screenWidth": 1920}'
         }
