@@ -363,7 +363,7 @@ class SteamStore:
         games = []
         for game in soup.find_all("game"):
             app_id = game.appid.text
-            fetched_game = self.fetch_app(app_id)
+            fetched_game = await self.fetch_app(app_id)
             games.append(fetched_game)
         return games
 
