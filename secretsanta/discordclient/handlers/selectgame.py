@@ -10,12 +10,17 @@ from steammarket import SteamStore, Game
 from steammarket.exceptions import AppDoesNotExist
 from .view.dropdown import GamePackageChooseDropdown, PackageSelectOption
 from model import GamePackage, Present, User, DiscordProfile, model
+from utils.environmentvariables import EnvironmentVariables
 
 MINIMAL_PRICE = 10.0
 
 game_url_regex = r'[a-z]+://store.steampowered.com/app/(?P<game_id>\d+).+'
 
-steam_store = SteamStore()
+
+env = EnvironmentVariables('STEAM_TOKEN', 'STEAM_LOGIN', 'STEAM_PASSWORD')
+
+steam_store = SteamStore(env.STEAM_LOGIN, env.STEAM_PASSWORD, env.STEAM_TOKEN)
+
 
 class InvalidGameUrl(Exception):
     pass

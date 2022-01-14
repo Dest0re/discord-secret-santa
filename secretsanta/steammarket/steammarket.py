@@ -6,6 +6,7 @@ import functools
 import base64
 import time
 import os
+import requests
 
 import rsa
 from bs4 import BeautifulSoup
@@ -97,6 +98,14 @@ else:
         ctx = contextvars.copy_context()
         partial = functools.partial(ctx.run, callable, *args, **kwargs)
         return await loop.run_in_executor(None, partial)
+
+
+class CreditCardData:
+    def __init__(self, type, number, cvv, date):
+        self.type = type
+        self.number = number
+        self.cvv = cvv
+        self.date = date
 
 
 class SteamStore:
@@ -374,6 +383,16 @@ class SteamStore:
         for game in soup.find_all("game"):
             app_id = game.appid.text
             games_ids.append(app_id)
+        return games_ids
+
+    def user_games_sync(self, steam_id64) -> list:
+        url = f"https://steamcommunity.com/profiles/{steam_id64}/games?tab=all&xml=1"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        games_ids = []
+        for game in soup.find_all("game"):
+            app_id = game.appid.text
+            games_ids.append(int(app_id))
         return games_ids
 
     async def close(self) -> None:
